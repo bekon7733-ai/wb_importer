@@ -1,0 +1,946 @@
+Запрос "Список поставок"		//////////////начало
+/api/v1/supplies
+post
+https://supplies-api.wildberries.ru/api/v1/supplies
+
+Описание метода
+Метод возвращает список поставок, по умолчанию — последние 1000 поставок.
+
+Лимит запросов на один аккаунт продавца:
+Тип	Период	Лимит	Интервал	Всплеск
+Персональный	1 мин	30 запросов	2 сек	10 запросов
+
+Authorizations:
+HeaderApiKey
+ API Key: HeaderApiKey
+Header parameter name: Authorization
+
+Query Parameters
+limit	
+	integer [ 1 .. 1000 ]
+	Default: 1000
+	Количество записей в ответе
+
+offset	
+	integer
+	Default: 0
+	После какого элемента выдавать данные
+
+Request Body schema: application/json
+required
+dates	
+	Array of objects (models.DateFilterRequest)
+	Фильтр по датам
+
+statusIDs	
+	Array of integers (models.HandySupplyStatus)
+	Items Enum: 1 2 3 4 5 6
+	Фильтр поставок по статусам. Возможные значения:
+		1 — Не запланировано
+		2 — Запланировано
+		3 — Отгрузка разрешена
+		4 — Идёт приёмка
+		5 — Принято
+		6 — Отгружено на воротах
+
+Ответы:
+
+200
+Успешно
+
+Response Schema: application/json
+Array
+[ 
+	phone	
+		string
+		Телефон пользователя, создавшего поставку
+
+	supplyID	
+		integer or null
+		ID поставки. Если null, это заказ, тогда используйте значение поля preorderID
+
+	preorderID	
+		integer
+		ID заказа (незапланированная поставка). Для всех виртуальных поставок будет 0
+
+	createDate	
+		string
+		Дата и время создания поставки
+
+	supplyDate	
+		string or null
+		Плановая дата отгрузки поставки
+
+	factDate	
+		string or null
+		Дата фактической отгрузки поставки
+
+	updatedDate	
+		string or null
+		Дата изменения поставки
+
+	statusID	
+		integer
+		Enum: 1 2 3 4 5 6
+		ID статуса поставки:
+			1 — Не запланировано
+			2 — Запланировано
+			3 — Отгрузка разрешена
+			4 — Идёт приёмка
+			5 — Принято
+			6 — Отгружено на воротах
+
+	boxTypeID	
+		any
+		ID типа поставки:
+			0 — Без коробов (виртуальная поставка)
+			1 и 2 — Короба
+			5 — Монопаллеты
+			6 — Суперсейф
+
+	isBoxOnPallet	
+		boolean
+		Тип поставки — Поштучная палета:
+			true — да
+			false — нет
+		Поле возвращается только при "boxTypeID": 2
+]
+
+400
+Неправильный запрос
+
+Response Schema: application/json
+	status	
+		integer
+		HTTP статус-код
+
+	title	
+		string
+		ID ошибки
+
+	detail	
+		string
+		Описание ошибки
+
+	requestId	
+		string
+		ID запроса
+
+	origin	
+		string
+		Сервис, вернувший ошибку
+
+
+401
+Не авторизован
+
+Response Schema: application/problem+json
+	title	
+		string
+		Заголовок ошибки
+
+	detail	
+		string
+		Детали ошибки
+
+	code	
+		string
+		Внутренний код ошибки
+
+	requestId	
+		string
+		Уникальный ID запроса
+
+	origin	
+		string
+		ID внутреннего сервиса WB
+
+	status	
+		number
+		HTTP статус-код
+
+	statusText	
+		string
+		Расшифровка HTTP статус-кода
+
+	timestamp	
+		string <date-time>
+		Дата и время запроса
+
+
+402
+Требуется платёж
+
+Response Schema: application/problem+json
+	title	
+		string
+		Заголовок ошибки
+
+	detail	
+		string
+		Детали ошибки. Ошибка возвращается только сервисам из Каталога решений для бизнеса
+
+
+429
+Слишком много запросов
+
+Response Schema: application/problem+json
+	title	
+		string
+		Заголовок ошибки
+
+	detail	
+		string
+		Детали ошибки
+
+	code	
+		string
+		Внутренний код ошибки
+
+	requestId	
+		string
+		Уникальный ID запроса
+
+	origin	
+		string
+		ID внутреннего сервиса WB
+
+	status	
+		number
+		HTTP статус-код
+
+	statusText	
+		string
+		Расшифровка HTTP статус-кода
+
+	timestamp	
+		string <date-time>
+		Дата и время запроса
+		
+Примеры запроса:
+{
+  "dates": [
+    {
+      "from": "2024-03-04",
+      "till": "2025-03-24",
+      "type": "factDate"
+    }
+  ],
+  "statusIDs": [
+    5,
+    6
+  ]
+}
+
+Примеры ответа:
+200
+[
+  {
+    "phone": "+7 916 *** 44 44",
+    "supplyID": null,
+    "preorderID": 34597755,
+    "createDate": "2024-12-29T16:58:26+03:00",
+    "supplyDate": null,
+    "factDate": null,
+    "updatedDate": null,
+    "statusID": 1,
+    "boxTypeID": 1
+  },
+  {
+    "phone": "+7 916 *** 33 33",
+    "supplyID": 26596368,
+    "preorderID": 34601223,
+    "createDate": "2024-12-29T16:57:59+03:00",
+    "supplyDate": "2024-12-29T00:00:00+03:00",
+    "factDate": null,
+    "updatedDate": null,
+    "statusID": 2,
+    "boxTypeID": 5
+  },
+  {
+    "phone": "+7 000 *** 36 76",
+    "supplyID": 22677736,
+    "preorderID": 27363170,
+    "createDate": "2024-08-22T18:10:59+03:00",
+    "supplyDate": "2024-08-22T00:00:00+03:00",
+    "factDate": "2024-08-22T12:24:14+03:00",
+    "updatedDate": "2024-08-22T18:33:45+03:00",
+    "statusID": 6,
+    "boxTypeID": 2,
+    "isBoxOnPallet": false
+  }
+]
+
+400
+{
+  "status": 400,
+  "title": "bad request",
+  "detail": "Выберите значение параметра 'Type' из списка: 'factDate createDate supplyDate updatedDate'",
+  "requestId": "31aba083c7144409c3cbbb968e693f16",
+  "origin": "supply-api"
+}
+
+401
+{
+  "title": "unauthorized",
+  "detail": "token problem; token is malformed: could not base64 decode signature: illegal base64 data at input byte 84",
+  "code": "07e4668e--a53a3d31f8b0-[UK-oWaVDUqNrKG]; 03bce=277; 84bd353bf-75",
+  "requestId": "7b80742415072fe8b6b7f7761f1d1211",
+  "origin": "s2s-api-auth-catalog",
+  "status": 401,
+  "statusText": "Unauthorized",
+  "timestamp": "2024-09-30T06:52:38Z"
+}
+
+402
+{
+  "title": "payment required",
+  "detail": "wb solution for business has insufficient funds on its balance. please top up the balance in the company's personal account https://dev.wildberries.ru/company"
+}
+
+429
+{
+  "title": "too many requests",
+  "detail": "limited by c122a060-a7fb-4bb4-abb0-32fd4e18d489",
+  "code": "07e4668e-ac2242c5c8c5-[UK-4dx7JUdskGZ]",
+  "requestId": "9d3c02cc698f8b041c661a7c28bed293",
+  "origin": "s2s-api-auth-catalog",
+  "status": 429,
+  "statusText": "Too Many Requests",
+  "timestamp": "2024-09-30T06:52:38Z"
+}
+Запрос "Список поставок"		//////////////конец
+
+Запрос "Детали поставки"		//////////////начало
+/api/v1/supplies/{ID}
+get
+https://supplies-api.wildberries.ru/api/v1/supplies/{ID}
+
+Описание метода:
+Метод возвращает детали поставки по ID.
+
+Лимит запросов на один аккаунт продавца:
+Тип	Период	Лимит	Интервал	Всплеск
+Персональный	1 мин	30 запросов	2 сек	10 запросов
+
+Authorizations:
+HeaderApiKey
+API Key: HeaderApiKey
+Header parameter name: Authorization
+
+path Parameters
+ID
+	required
+	integer
+	ID поставки или заказа
+
+query Parameters
+	isPreorderID	
+	boolean
+	Default: false
+	Поиск по:
+		true — ID заказа, если в ID передаёте ID заказа
+		false — ID поставки, если в ID передаёте ID поставки
+
+Ответы:
+
+200
+Успешно
+
+Response Schema: application/json
+	phone	
+		string
+		Телефон пользователя, создавшего поставку
+
+	statusID	
+		integer
+		Enum: 1 2 3 4 5 6
+		ID статуса поставки:
+			1 — Не запланировано
+			2 — Запланировано
+			3 — Отгрузка разрешена
+			4 — Идёт приёмка
+			5 — Принято
+			6 — Отгружено на воротах
+
+	virtualTypeID	
+		integer
+		ID типа виртуальной поставки. Отображается только для поставок с "boxTypeID":0.
+			0 — Перенос остатков
+			1 — Обезличка
+			4 — QR-поставка
+			5 — Допринято
+			6 — Скан-приёмка
+
+	boxTypeID	
+		integer
+		ID типа поставки:
+			0 — Без коробов (виртуальная поставка)
+			1 и 2 — Короба
+			5 — Монопаллеты
+			6 — Суперсейф
+
+	createDate	
+		string
+		Дата и время создания поставки
+
+	supplyDate	
+		string or null
+		Плановая дата отгрузки поставки
+
+	factDate	
+		string or null
+		Дата фактической отгрузки поставки
+
+	updatedDate	
+		string or null
+		Дата изменения поставки
+
+	warehouseID	
+		integer
+		ID склада, на который планируется поставка
+
+	warehouseName	
+		string
+		Название склада, на который планируется поставка
+
+	actualWarehouseID	
+		integer or null
+		ID склада, на который поставка была привезена
+
+	actualWarehouseName	
+		string
+		Название склада, на который поставка привезена
+
+	transitWarehouseID	
+		integer or null
+		ID транзитного склада
+
+	transitWarehouseName	
+		string
+		Название транзитного склада
+
+	acceptanceCost	
+		number or null
+		Предварительная стоимость приёмки, ₽
+
+	paidAcceptanceCoefficient	
+		number or null
+		Коэффициент приёмки
+
+	rejectReason	
+		string or null
+		Причина, по которой поставка не может быть принята
+
+	supplierAssignName	
+		string or null
+		Краткое название продавца
+
+	storageCoef	
+		string or null
+		Коэффициент хранения
+
+	deliveryCoef	
+		string or null
+		Коэффициент логистики
+
+	quantity	
+		integer
+		Добавлено в поставку/заказ, шт
+
+	readyForSaleQuantity	
+		integer
+		Поступило в продажу, шт
+
+	acceptedQuantity	
+		integer
+		Принято, шт
+
+	unloadingQuantity	
+		integer
+		Количество товара, находящегося на раскладке, шт
+
+	depersonalizedQuantity	
+		integer or null
+		Количество обезличенного товара, шт
+
+	isBoxOnPallet	
+		boolean
+		Тип поставки — Поштучная палета:
+
+	true — да
+		false — нет
+		Поле возвращается только при "boxTypeID": 2
+
+
+400
+Неправильный запрос
+
+Response Schema: application/json
+	status	
+		integer
+		HTTP статус-код
+
+	title	
+		string
+		ID ошибки
+
+	detail	
+		string
+		Описание ошибки
+
+	requestId	
+		string
+		ID запроса
+
+	origin	
+		string
+		Сервис, вернувший ошибку
+
+
+401
+Не авторизован
+
+Response Schema: application/problem+json
+	title	
+		string
+		Заголовок ошибки
+
+	detail	
+		string
+		Детали ошибки
+
+	code	
+		string
+		Внутренний код ошибки
+
+	requestId	
+		string
+		Уникальный ID запроса
+
+	origin	
+		string
+		ID внутреннего сервиса WB
+
+	status	
+		number
+		HTTP статус-код
+
+	statusText	
+		string
+		Расшифровка HTTP статус-кода
+
+	timestamp	
+		string <date-time>
+		Дата и время запроса
+
+
+402
+Требуется платёж
+
+Response Schema: application/problem+json
+	title	
+		string
+		Заголовок ошибки
+
+	detail	
+		string
+		Детали ошибки. Ошибка возвращается только сервисам из Каталога решений для бизнеса
+
+
+404
+Не найдено
+
+Response Schema: application/json
+	status	
+		integer
+		HTTP статус-код
+
+	title	
+		string
+		ID ошибки
+
+	detail	
+		string
+		Описание ошибки
+
+	requestId	
+		string
+		ID запроса
+
+	origin	
+		string
+		Сервис, вернувший ошибку
+
+
+429
+Слишком много запросов
+
+Response Schema: application/problem+json
+	title	
+		string
+		Заголовок ошибки
+
+	detail	
+		string
+		Детали ошибки
+
+	code	
+		string
+		Внутренний код ошибки
+
+	requestId	
+		string
+		Уникальный ID запроса
+
+	origin	
+		string
+		ID внутреннего сервиса WB
+
+	status	
+		number
+		HTTP статус-код
+
+	statusText	
+		string
+		Расшифровка HTTP статус-кода
+
+	timestamp	
+		string <date-time>
+		Дата и время запроса
+
+Примеры запроса:
+{
+  "dates": [
+    {
+      "from": "2024-03-04",
+      "till": "2025-03-24",
+      "type": "factDate"
+    }
+  ],
+  "statusIDs": [
+    5,
+    6
+  ]
+}
+
+Примеры ответа:
+200
+{
+  "title": "too many requests",
+  "detail": "limited by c122a060-a7fb-4bb4-abb0-32fd4e18d489",
+  "code": "07e4668e-ac2242c5c8c5-[UK-4dx7JUdskGZ]",
+  "requestId": "9d3c02cc698f8b041c661a7c28bed293",
+  "origin": "s2s-api-auth-catalog",
+  "status": 429,
+  "statusText": "Too Many Requests",
+  "timestamp": "2024-09-30T06:52:38Z"
+}
+
+400
+{
+  "status": 400,
+  "title": "bad request",
+  "detail": "Выберите значение параметра 'Type' из списка: 'factDate createDate supplyDate updatedDate'",
+  "requestId": "31aba083c7144409c3cbbb968e693f16",
+  "origin": "supply-api"
+}
+
+401
+{
+  "title": "unauthorized",
+  "detail": "token problem; token is malformed: could not base64 decode signature: illegal base64 data at input byte 84",
+  "code": "07e4668e--a53a3d31f8b0-[UK-oWaVDUqNrKG]; 03bce=277; 84bd353bf-75",
+  "requestId": "7b80742415072fe8b6b7f7761f1d1211",
+  "origin": "s2s-api-auth-catalog",
+  "status": 401,
+  "statusText": "Unauthorized",
+  "timestamp": "2024-09-30T06:52:38Z"
+}
+
+402
+{
+  "title": "payment required",
+  "detail": "wb solution for business has insufficient funds on its balance. please top up the balance in the company's personal account https://dev.wildberries.ru/company"
+}
+
+429
+{
+  "title": "too many requests",
+  "detail": "limited by c122a060-a7fb-4bb4-abb0-32fd4e18d489",
+  "code": "07e4668e-ac2242c5c8c5-[UK-4dx7JUdskGZ]",
+  "requestId": "9d3c02cc698f8b041c661a7c28bed293",
+  "origin": "s2s-api-auth-catalog",
+  "status": 429,
+  "statusText": "Too Many Requests",
+  "timestamp": "2024-09-30T06:52:38Z"
+}
+
+Запрос "Детали поставки"		//////////////конец
+
+Запрос "Товары поставки"		//////////////начало
+/api/v1/supplies/{ID}/goods
+get
+https://supplies-api.wildberries.ru/api/v1/supplies/{ID}/goods
+Описание метода
+Метод возвращает информацию о товарах в поставке.
+
+Лимит запросов на один аккаунт продавца:
+Тип	Период	Лимит	Интервал	Всплеск
+Персональный	1 мин	30 запросов	2 сек	10 запросов
+
+Authorizations:
+	HeaderApiKey
+	API Key: HeaderApiKey
+	Header parameter name: Authorization
+
+path Parameters
+	ID
+		required
+		integer
+		ID поставки или заказа
+
+query Parameters
+	limit	
+		integer [ 1 .. 1000 ]
+		Default: 100
+		Количество записей в ответе
+
+	offset	
+		integer
+		Default: 0
+		После какого элемента выдавать данные
+
+	isPreorderID	
+		boolean
+		Default: false
+		Поиск по:
+			true — ID заказа, если в ID передаёте ID заказа
+			false — ID поставки, если в ID передаёте ID поставки
+
+Ответы
+
+200
+Успешно
+
+Response Schema: application/json
+Array [
+ 
+	barcode	
+		string
+		Баркод товара
+
+	vendorCode	
+		string
+		Артикул продавца
+
+	nmID	
+		integer
+		Артикул WB
+
+	needKiz	
+		boolean
+		Нужен ли код маркировки Честного знака для этого товара:
+			false — не нужен
+			true — нужен
+
+	tnved	
+		string or null
+		Код ТНВЭД.
+		Если "needKiz":true, а "tnved":null, нужно заполнить характеристику товара ТН ВЭД в личном кабинете или по API
+
+	techSize	
+		string
+		Размер товара, указанный продавцом
+
+	color	
+		string or null
+		Цвет товара
+
+	supplierBoxAmount	
+		integer or null
+		Указано в упаковке, шт
+
+	quantity	
+		integer
+		Указано в поставке/заказе, шт
+
+	readyForSaleQuantity	
+		integer or null
+		Поступило в продажу, шт
+
+	acceptedQuantity	
+		integer or null
+		Принято, шт
+
+	unloadingQuantity	
+		integer or null
+		Количество товара на раскладке, шт
+]
+
+
+400
+Неправильный запрос
+
+Response Schema: text/plain; charset=utf-8
+	status	
+		integer
+		HTTP статус-код
+
+	title	
+		string
+		ID ошибки
+
+	detail	
+		string
+		Описание ошибки
+
+	requestId	
+		string
+		ID запроса
+
+	origin	
+		string
+		Сервис, вернувший ошибку
+
+
+401
+Не авторизован
+
+Response Schema: application/problem+json
+	title	
+		string
+		Заголовок ошибки
+
+	detail	
+		string
+		Детали ошибки
+
+	code	
+		string
+		Внутренний код ошибки
+
+	requestId	
+		string
+		Уникальный ID запроса
+
+	origin	
+		string
+		ID внутреннего сервиса WB
+
+	status	
+		number
+		HTTP статус-код
+
+	statusText	
+		string
+		Расшифровка HTTP статус-кода
+
+	timestamp	
+		string <date-time>
+		Дата и время запроса
+
+
+402
+Требуется платёж
+
+Response Schema: application/problem+json
+	title	
+		string
+		Заголовок ошибки
+
+	detail	
+		string
+		Детали ошибки. Ошибка возвращается только сервисам из Каталога решений для бизнеса
+
+
+429
+Слишком много запросов
+
+Response Schema: application/problem+json
+	title	
+		string
+		Заголовок ошибки
+
+	detail	
+		string
+		Детали ошибки
+
+	code	
+		string
+		Внутренний код ошибки
+
+	requestId	
+		string
+		Уникальный ID запроса
+
+	origin	
+		string
+		ID внутреннего сервиса WB
+
+	status	
+		number
+		HTTP статус-код
+
+	statusText	
+		string
+		Расшифровка HTTP статус-кода
+
+	timestamp	
+		string <date-time>
+		Дата и время запроса
+
+Примеры ответа:
+200
+[
+  {
+    "barcode": "1234567891234",
+    "vendorCode": "wb4sewt0vg",
+    "nmID": 987456654,
+    "needKiz": true,
+    "tnved": "6204430000",
+    "techSize": "C",
+    "color": "красный",
+    "supplierBoxAmount": 10,
+    "quantity": 10,
+    "readyForSaleQuantity": 0,
+    "unloadingQuantity": 0,
+    "acceptedQuantity": 0
+  }
+]
+
+{
+  "status": 400,
+  "title": "bad request",
+  "detail": "Неверный формат offset",
+  "requestId": "a6bdc2a4d2fde51c2036fa8af2483886",
+  "origin": "supply-api"
+}
+
+{
+  "title": "unauthorized",
+  "detail": "token problem; token is malformed: could not base64 decode signature: illegal base64 data at input byte 84",
+  "code": "07e4668e--a53a3d31f8b0-[UK-oWaVDUqNrKG]; 03bce=277; 84bd353bf-75",
+  "requestId": "7b80742415072fe8b6b7f7761f1d1211",
+  "origin": "s2s-api-auth-catalog",
+  "status": 401,
+  "statusText": "Unauthorized",
+  "timestamp": "2024-09-30T06:52:38Z"
+}
+
+{
+  "title": "payment required",
+  "detail": "wb solution for business has insufficient funds on its balance. please top up the balance in the company's personal account https://dev.wildberries.ru/company"
+}
+
+{
+  "title": "too many requests",
+  "detail": "limited by c122a060-a7fb-4bb4-abb0-32fd4e18d489",
+  "code": "07e4668e-ac2242c5c8c5-[UK-4dx7JUdskGZ]",
+  "requestId": "9d3c02cc698f8b041c661a7c28bed293",
+  "origin": "s2s-api-auth-catalog",
+  "status": 429,
+  "statusText": "Too Many Requests",
+  "timestamp": "2024-09-30T06:52:38Z"
+}
+Запрос "Товары поставки"		//////////////конец
