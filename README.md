@@ -132,7 +132,7 @@ py main.py --help
 ## Структура базы данных
 
 Схема `Wildberries`, 7 таблиц:
-https://github.com/bekon7733-ai/wb_importer/blob/main/shemaBD.png
+![Схема базы данных Wildberries](shemaBD.png)
 ```
 Финансовые отчёты
 СписокОтчетовРеализацииСутки   1 ──< ∞  ДетализацииРеализацииСутки    (по report_id)
