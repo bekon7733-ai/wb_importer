@@ -43,12 +43,3 @@ SUPPLY_GOODS_LIMIT = 1000
 SUPPLY_REQUEST_DELAY = 3  # задержка между запросами в секундах (2 + запас 1 сек)
 SUPPLY_MAX_RETRIES = 3
 SUPPLY_RETRY_DELAY = 60
-
-# Лимиты API для поставок
-SUPPLY_LIST_LIMIT = 1000
-SUPPLY_GOODS_LIMIT = 1000
-
-# Rate limiting для поставок (30 запросов в минуту = 1 запрос в 2 сек)
-SUPPLY_REQUEST_DELAY = 3  # задержка между запросами в секундах (2 + запас 1 сек)
-SUPPLY_MAX_RETRIES = 3
-SUPPLY_RETRY_DELAY = 60
